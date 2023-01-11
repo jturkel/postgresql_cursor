@@ -109,9 +109,11 @@ module PostgreSQLCursor
 
     def each_instance(klass = nil, &block)
       klass ||= @type
+      model_column_types = nil
       each_tuple do |row|
-        @column_types ||= column_types
-        model = klass.send(:instantiate, row, @column_types)
+        # Prefer ActiveRecord types like enums over Postgres types
+        model_column_types ||= column_types.reject! { |k, _| klass.attribute_types.key?(k) }
+        model = klass.send(:instantiate, row, model_column_types)
         block.call(model)
       end
     end
@@ -138,10 +140,12 @@ module PostgreSQLCursor
 
     def each_instance_batch(klass = nil, &block)
       klass ||= @type
+      model_column_types = nil
       each_batch do |batch|
+        # Prefer ActiveRecord types like enums over Postgres types
+        model_column_types ||= column_types.reject! { |k, _| klass.attribute_types.key?(k) }
         models = batch.map do |row|
-          @column_types ||= column_types
-          klass.send(:instantiate, row, @column_types)
+          klass.send(:instantiate, row, model_column_types)
         end
         block.call(models)
       end

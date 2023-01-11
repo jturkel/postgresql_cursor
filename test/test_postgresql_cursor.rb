@@ -229,6 +229,20 @@ class TestPostgresqlCursor < Minitest::Test
     refute cursor.instance_variable_get(:@type).loaded?
   end
 
+  def test_each_instance_with_active_record_enums
+    User.each_instance do |instance|
+      assert_equal('active', instance.state)
+    end
+  end
+
+  def test_each_instance_batch_with_active_record_enums
+    User.each_instance_batch do |batch|
+      batch.each do |instance|
+        assert_equal('active', instance.state)
+      end
+    end
+  end
+
   def root_cause(e)
     until e.cause.nil?
       e = e.cause

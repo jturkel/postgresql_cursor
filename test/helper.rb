@@ -22,6 +22,10 @@ ActiveRecord::Schema.define(version: 0) do
     t.string :data
     t.integer :product_id
   end
+
+  create_table(:users, force: true) do |t|
+    t.integer :state
+  end
 end
 
 class Product < ActiveRecord::Base
@@ -39,5 +43,20 @@ class Price < ActiveRecord::Base
   belongs_to :product
 end
 
+class User < ActiveRecord::Base
+  enum state: {
+    active: 1,
+  }
+
+  def self.generate(max=1_000)
+    max.times do |i|
+      connection.execute("insert into users(state) values (1)")
+    end
+  end
+end
+
 Product.destroy_all
 Product.generate(1000)
+
+User.destroy_all
+User.generate(100)
